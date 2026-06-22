@@ -9,32 +9,45 @@ const app = express();
 
 // Middlewares
 app.use(express.json());
-app.use(cors({
-  origin: "*"
-}));
+app.use(cors());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.log("❌ Mongo Error:", err));
+  .catch((err) => {
+    console.error("❌ Mongo Error:", err);
+    process.exit(1);
+  });
 
-// Sample Schema (change as per your project)
-const serviceSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
-  image: String
-});
+// Outfit Model
+const outfitSchema = new mongoose.Schema({}, { strict: false });
 
-const Service = mongoose.model("Service", serviceSchema);
+const Outfit = mongoose.model("Outfit", outfitSchema, "outfits");
 
-// Routes
+// Root Route
 app.get("/", (req, res) => {
   res.send("TryOnix API Running 🚀");
 });
 
-app.get("/api/services", async (req, res) => {
-  const services = await Service.find();
-  res.json(services);
+// Get All Outfits
+app.get("/api/outfits", async (req, res) => {
+  try {
+    const outfits = await Outfit.find();
+
+    res.status(200).json({
+      success: true,
+      count: outfits.length,
+      data: outfits,
+    });
+  } catch (error) {
+    console.error("Error fetching outfits:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 });
 
 // Start Server
