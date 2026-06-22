@@ -226,7 +226,7 @@
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-    position: absolute;
+    position: relative;
   }
   .outfit-card:hover {
     transform: translateY(-6px);
