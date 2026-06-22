@@ -7,11 +7,9 @@ dotenv.config();
 
 const app = express();
 
-// Middlewares
 app.use(express.json());
 app.use(cors());
 
-// MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
@@ -20,20 +18,52 @@ mongoose
     process.exit(1);
   });
 
-// Outfit Model
 const outfitSchema = new mongoose.Schema({}, { strict: false });
-
 const Outfit = mongoose.model("Outfit", outfitSchema, "outfits");
 
-// Root Route
 app.get("/", (req, res) => {
   res.send("TryOnix API Running 🚀");
 });
 
-// Get All Outfits
 app.get("/api/outfits", async (req, res) => {
   try {
-    const outfits = await Outfit.find();
+    const {
+      gender,
+      occasion,
+      season,
+      color,
+      style,
+      bodyType,
+      store,
+      search,
+      limit = 80,
+    } = req.query;
+
+    const query = {};
+
+    if (gender) query.gender = gender;
+    if (occasion) query.occasion = occasion;
+    if (season) query.season = season;
+    if (color) query.color = color;
+    if (store) query.store = store;
+
+    if (style) {
+      query.stylePreference = style;
+    }
+
+    if (bodyType) {
+      query.bodyType = bodyType;
+    }
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { brand: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const outfits = await Outfit.find(query).limit(Number(limit));
 
     res.status(200).json({
       success: true,
@@ -50,7 +80,6 @@ app.get("/api/outfits", async (req, res) => {
   }
 });
 
-// Start Server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
