@@ -1,6 +1,6 @@
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 // Change this to your Render backend URL after deployment
-const API_BASE = 'https://tryonix-api.onrender.com/api';
+const API_BASE = 'https://tryonix.onrender.com/api';
 // For local dev: const API_BASE = 'http://localhost:5000/api';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
