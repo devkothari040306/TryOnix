@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TryOnix — Smart Outfit Recommender</title>
+<link href="style.css" rel="stylesheet" >
+<script src="script.js"></script>
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">TryOnix<span>.</span></div>
+  <ul>
+    <li><a href="#Services">Services</a></li>
+    <li><a href="#tryon">Try On</a></li>
+    <li><a href="#stores">Stores</a></li>
+    <li><a href="#how" class="nav-cta">How It Works</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div style="position:absolute;z-index:0.5;max-width:800px;">
+    <div class="hero-badge fade-up">FASHION MADE FOR INDIANS</div>
+    <h1 class="fade-up-2">
+      GROOVE YOUR OWN<br>
+      <span class="line2">STYLE</span>
+    </h1>
+    <p class="fade-up-3">Explore outfits based on occasion, style, color, and budget. Compare fashion choices, save time, and Services looks that suit your personality.</p>
+    <div class="hero-btns fade-up-3">
+      <a href="#Services" class="btn-primary">✦ Find  Outfit</a>
+      <a href="#tryon" class="btn-ghost">Virtual Try-On →</a>
+    </div>
+
+    </div>
+  </div>
+</div>
+
+<!--  SECTION -->
+<section id="Services" style="max-width:1280px;padding:60px 40px 20px;">
+  <div class="section-tag">✦ Smart Filter</div>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div class="section-title">Find Your <em style="color:var(--accent);">Look</em></div>
+      <div class="section-sub">Apply filters and let Us suggest the best outfits for you in seconds.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="filters-section" id="filters-box">
+  <div style="font-size:15px;font-weight:600;margin-bottom:20px;color:var(--text);">Define Your Style</div>
+
+  <!-- Quick chips -->
+  <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;">Occasion</div>
+  <div class="chip-row" id="occasion-chips">
+    <button class="chip active" onclick="selectChip(this,'occasion')">All</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Casual</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Office</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Wedding</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Party</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Date Night</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Beach</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Gym</button>
+    <button class="chip" onclick="selectChip(this,'occasion')">Festival</button>
+  </div>
+
+  <div class="filters-grid" style="margin-top:24px;">
+    <div class="filter-group">
+      <label>Gender</label>
+      <select id="f-gender" onchange="applyFilters()">
+        <option value="">All Genders</option>
+        <option>Women</option>
+        <option>Men</option>
+        <option>Unisex</option>
+      
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Weather / Season</label>
+    <select id="f-season" onchange="applyFilters()">
+  <option value="">Any Season</option>
+  <option>☀️ Summer</option>
+  <option>🌧️ Monsoon</option>
+  <option>🍂 Autumn</option>
+  <option>❄️ Winter</option>
+  <option>🌸 Spring</option>
+</select>
+    </div>
+    <div class="filter-group">
+     <label>Color Preference</label>
+<select id="f-color" onchange="applyFilters()">
+  <option value="">Any Color</option>
+  <option>⚫ Classic Black</option>
+  <option>⚪ Elegant White</option>
+  <option>🔵 Blue Shades</option>
+  <option>🟢 Green Shades</option>
+  <option>🔴 Red & Maroon</option>
+  <option>🟡 Yellow & Mustard</option>
+  <option>🟣 Purple & Lavender</option>
+  <option>🟤 Brown & Beige</option>
+  <option>🌸 Pastel Colors</option>
+  <option>✨ Bright & Vibrant</option>
+  <option>🌿 Earthy Tones</option>
+  <option>⚪⚫ Monochrome</option>
+</select>
+    </div>
+   <div class="filter-group">
+  <label>Style Preference</label>
+  <select id="f-style" onchange="applyFilters()">
+    <option value="">Any Style</option>
+    <option>👑 Traditional Indian</option>
+    <option>✨ Indo-Western</option>
+    <option>👔 Formal</option>
+    <option>😊 Casual</option>
+    <option>🎉 Party Wear</option>
+    <option>💎 Festive Ethnic</option>
+    <option>🏃 Sportswear</option>
+    <option>✈️ Travel Friendly</option>
+    <option>🔥 Trendy Fashion</option>
+    <option>🌿 Smart Casual</option>
+  </select>
+</div>
+  <div class="filter-group">
+  <label>Body Type</label>
+  <select id="f-body" onchange="applyFilters()">
+    <option value="">All Body Types</option>
+    <option>🟦 Slim</option>
+    <option>🟩 Athletic</option>
+    <option>🟨 Average</option>
+    <option>🟧 Curvy</option>
+    <option>🟥 Plus Size</option>
+    <option>📏 Petite</option>
+    <option>📐 Tall</option>
+  </select>
+</div>
+    <div class="filter-group">
+      <label>Budget (IND)</label>
+      <select id="f-budget" onchange="applyFilters()">
+        <option value="">Any Budget</option>
+        <option>Under 300</option>
+        <option>₹300 – ₹800</option>
+        <option>$800 – ₹1500</option>
+        <option>₹1500 – ₹3000</option>
+        <option>₹3000+</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Store</label>
+      <select id="f-store" onchange="applyFilters()">
+        <option value="">All Stores</option>
+        <option>Amazon </option>
+        <option>Savana</option>
+        
+        <option>H&M</option>
+        <option>Zara</option>
+        <option>Myntra</option>
+        <option>Nykaa Fashion</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="f-sort" onchange="applyFilters()">
+        <option>Trending</option>
+        <option>Best Match</option>
+        <option>Price: Low to High</option>
+        <option>Price: High to Low</option>
+        <option>Top Rated</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="🔍  Search outfits... (e.g. 'Red Summer TOP')" oninput="applyFilters()" />
+    <button class="btn-primary" onclick="applyFilters()" style="white-space:nowrap;padding:14px 28px;">Search Outfits ✦</button>
+  </div>
+</div>
+
+<!-- OUTFITS GRID -->
+<div style="max-width:1280px;margin:0 auto;padding:0 40px 80px;">
+  <div class="ai-loading" id="ai-loading">
+    Finding the best outfits for you <div class="ai-dots"><span></span><span></span><span></span></div>
+  </div>
+  <div class="outfits-grid" id="outfits-grid"></div>
+  <div id="no-results" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);">
+    <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+    <div style="font-size:20px;font-weight:600;margin-bottom:8px;color:var(--text);">No outfits found</div>
+    <div>Try adjusting your filters for more results.</div>
+  </div>
+</div>
+
+<!-- VIRTUAL TRY-ON -->
+<div class="tryon-section" id="tryon">
+  <div class="section-tag" style="text-align:center;">✦ Virtual Try-On</div>
+  <div class="section-title" style="font-size:clamp(28px,4vw,44px);">See It On <em style="color:var(--accent);">You</em></div>
+  <p style="font-size:16px;color:var(--muted);margin-top:8px;">Upload your photo and preview  outfit on your own body .</p>
+
+  <div class="tryon-area">
+    <div>
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:16px;">Step 1 — Upload Your Photo</h3>
+      <div class="upload-box" id="upload-box" onclick="document.getElementById('photo-input').click()">
+        <div class="upload-icon">📸</div>
+        <div class="upload-title">Click to Upload</div>
+        <div class="upload-hint">JPG, PNG up to 10MB<br>Best results with full-body photos</div>
+        <img class="upload-preview" id="upload-preview" alt="Your photo" />
+      </div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+
+      <h3 style="font-size:15px;font-weight:600;margin:24px 0 12px;">Step 2 — Pick an Outfit</h3>
+      <div class="tryon-select-outfit" id="tryon-chips"></div>
+
+      <button class="btn-primary" style="width:100%;margin-top:20px;padding:16px;" onclick="generateTryOn()">
+        ✨ Generate  Try-On
+      </button>
+    </div>
+
+    <div>
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:16px;">Result Preview</h3>
+      <div class="tryon-result-box" id="tryon-result">
+        <div class="tryon-placeholder">
+          <div class="tryon-placeholder-icon">🪞</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text);">Your look will appear here</div>
+          <div style="font-size:14px;">Select an outfit of choice</div>
+        </div>
+        <img class="tryon-result-img" id="tryon-result-img" alt="Try-on result" />
+      </div>
+      <div id="tryon-loading" style="display:none;text-align:center;padding:24px;color:var(--muted);">
+        Generating your look <div class="ai-dots" style="display:inline-flex;"><span></span><span></span><span></span></div>
+      </div>
+      <div id="tryon-info" style="display:none;margin-top:16px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
+          <div id="tryon-outfit-name" style="font-weight:600;margin-bottom:8px;"></div>
+          <div id="tryon-outfit-price" style="color:var(--accent);font-size:20px;margin-bottom:16px;"></div>
+          <a id="tryon-buy-link" class="btn-primary" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;">Shop This Outfit →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">✦ How It Works</div>
+  <div class="section-title">Get Your Perfect <em style="color:var(--accent);">Outfit</em></div>
+
+  <div class="how-grid">
+
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-icon">🎯</div>
+      <h3>Select Preferences</h3>
+      <p>Choose filters such as occasion, gender, weather, color, and budget to narrow down outfit choices.</p>
+    </div>
+
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-icon">👕</div>
+      <h3>Browse Outfits</h3>
+      <p>Explore outfit recommendations that match your selected preferences and style requirements.</p>
+    </div>
+
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-icon">📷</div>
+      <h3>Try Before You Buy</h3>
+      <p>Upload your photo and preview how the selected outfit may look on you using the virtual try-on feature.</p>
+    </div>
+
+    <div class="how-card">
+      <div class="how-num">04</div>
+      <div class="how-icon">🛒</div>
+      <h3>Purchase Easily</h3>
+      <p>Visit the store page of your chosen outfit and complete your purchase directly from the retailer.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- STORES -->
+<section id="stores" style="padding-top:0;">
+  <div class="section-tag">✦ Shopping Partners</div>
+  <div class="section-title">Shop From <em style="color:var(--accent);">Popular Indian Stores</em></div>
+  <div class="section-sub">
+    Explore outfits from leading fashion platforms in India and purchase directly from your preferred store.
+  </div>
+
+  <div class="stores-row">
+
+    <a href="https://www.myntra.com" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot"></span>Myntra
+    </a>
+
+    <a href="https://www.ajio.com" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot" style="background:var(--pink)"></span>AJIO
+    </a>
+
+    <a href="https://www.nykaafashion.com" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot" style="background:var(--blue)"></span>Nykaa Fashion
+    </a>
+
+    <a href="https://www.tatacliq.com" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot" style="background:var(--accent)"></span>Tata CLiQ
+    </a>
+
+    <a href="https://www.amazon.in/fashion" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot"></span>Amazon Fashion India
+    </a>
+
+    <a href="https://www.flipkart.com/clothing-and-accessories" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot" style="background:var(--pink)"></span>Flipkart Fashion
+    </a>
+
+    <a href="https://www.shoppersstop.com" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot" style="background:var(--accent)"></span>Shoppers Stop
+    </a>
+
+    <a href="https://www.lifestylestores.com/in/en" target="_blank" rel="noopener" class="store-pill">
+      <span class="store-dot" style="background:var(--blue)"></span>Lifestyle
+    </a>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo"> <a href="#">TryOnix</a><span>.</span></div>
+  <div class="footer-links">
+    <a href="#">About</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 TryOnix. Groove Your Own Style .</div>
+</footer>
+
+<!-- OUTFIT DETAIL MODEL -->
+<div class="modal-overlay" id="modal" onclick="closeModalCheck(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-body">
+      <div class="modal-img-side" id="modal-img"></div>
+      <div class="modal-info-side">
+        <div class="modal-brand" id="modal-brand"></div>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-desc" id="modal-desc"></div>
+        <div class="modal-tags" id="modal-tags"></div>
+        <div class="modal-price" id="modal-price"></div>
+        <div class="modal-btns">
+          <a class="modal-buy" id="modal-buy" href="#" target="_blank" rel="noopener">Shop Now →</a>
+          <button class="modal-tryon-launch" onclick="launchTryOn()">🪞 Try This On Virtually</button>
+        </div>
+        <div class="rating" id="modal-rating" style="margin-top:16px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
