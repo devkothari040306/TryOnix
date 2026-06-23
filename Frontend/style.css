@@ -495,6 +495,49 @@
   .modal-tryon-launch { display: block; text-align: center; background: transparent; border: 1px solid var(--border2); color: var(--text); padding: 13px 24px; border-radius: 50px; font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
   .modal-tryon-launch:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
 
+  /* ─── AUTH MODAL FIX (SAFE ADDITION ONLY) ─── */
+
+#auth-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+#auth-modal .modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  animation: fadeUp 0.25s ease;
+}
+
+#auth-modal input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+#auth-modal input:focus {
+  border-color: var(--accent);
+}
+
+#auth-msg {
+  font-size: 13px;
+  text-align: center;
+}
   /* FOOTER */
   footer {
     border-top: 1px solid var(--border);

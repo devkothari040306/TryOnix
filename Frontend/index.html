@@ -18,9 +18,58 @@
     <li><a href="#tryon">Try On</a></li>
     <li><a href="#stores">Stores</a></li>
     <li><a href="#how" class="nav-cta">How It Works</a></li>
+    <li id="auth-btn">
+  <a href="#" class="nav-cta" onclick="toggleAuth(true)">Login / Signup</a>
+</li>
   </ul>
 </nav>
 
+<!-- AUTH MODAL -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal" style="max-width:420px;padding:30px;">
+
+    <button class="modal-close" onclick="toggleAuth(false)">✕</button>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <button id="login-tab" onclick="switchAuthTab('login')" class="btn-ghost" style="flex:1;">
+        Login
+      </button>
+      <button id="signup-tab" onclick="switchAuthTab('signup')" class="btn-ghost" style="flex:1;">
+        Signup
+      </button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <input id="login-email" placeholder="Email"
+        style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;" />
+
+      <input id="login-password" type="password" placeholder="Password"
+        style="width:100%;padding:12px;margin-bottom:15px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;" />
+
+      <button class="btn-primary" style="width:100%;" onclick="login()">
+        Login
+      </button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signup-form" style="display:none;">
+      <input id="signup-name" placeholder="Name"
+        style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;" />
+
+      <input id="signup-email" placeholder="Email"
+        style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;" />
+
+      <input id="signup-password" type="password" placeholder="Password"
+        style="width:100%;padding:12px;margin-bottom:15px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;" />
+
+      <button class="btn-primary" style="width:100%;" onclick="signup()">
+        Create Account
+      </button>
+    </div>
+
+  </div>
+</div>
 <!-- HERO -->
 <div class="hero" id="home">
   <div class="hero-bg"></div>
