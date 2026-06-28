@@ -9,6 +9,7 @@ let selectedOccasion = 'All';
 let selectedTryOnOutfit = null;
 let currentModalOutfit = null;
 let currentUser = JSON.parse(localStorage.getItem('tryonix_user') || 'null');
+let uploadedPersonFile = null;
 
 // ─── AUTH ─────────────────────────────────────────────────────────────
 function getAuthToken() {
@@ -362,6 +363,7 @@ function quickTryOn(id) {
 function handlePhotoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+  uploadedPersonFile = file;
   const reader = new FileReader();
   reader.onload = (e) => {
     const preview = document.getElementById('upload-preview');
@@ -376,7 +378,46 @@ function handlePhotoUpload(event) {
   reader.readAsDataURL(file);
 }
 
-function generateTryOn() {
+function getTryOnImageSource(payload) {
+  const data = payload?.data ?? payload;
+
+  if (typeof data === 'string') {
+    return data.startsWith('data:') ? data : `data:image/png;base64,${data}`;
+  }
+
+  if (Array.isArray(data)) {
+    return getTryOnImageSource(data[0]);
+  }
+
+  const image =
+    data?.image ||
+    data?.generated_image ||
+    data?.result ||
+    data?.output ||
+    data?.data ||
+    data?.url ||
+    data?.[0]?.url;
+
+  if (!image) return '';
+
+  return typeof image === 'string' && !image.startsWith('http') && !image.startsWith('data:')
+    ? `data:image/png;base64,${image}`
+    : image;
+}
+
+function showTryOnFailure(message) {
+  const placeholder = document.querySelector('.tryon-placeholder');
+  if (!placeholder) return;
+
+  placeholder.style.display = 'block';
+  placeholder.innerHTML = `
+    <div style="font-size:48px;margin-bottom:12px;">!</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text);">Try-on failed</div>
+    <div style="font-size:14px;">${message}</div>
+  `;
+}
+
+async function generateTryOn() {
   if (!getAuthToken()) {
     setAuthMessage('Please login to use virtual try-on.', true);
     toggleAuth(true);
@@ -384,12 +425,16 @@ function generateTryOn() {
   }
 
   const preview = document.getElementById('upload-preview');
-  if (!preview.src || preview.style.display === 'none') {
+  if (!uploadedPersonFile || !preview.src || preview.style.display === 'none') {
     alert('Please upload your photo first.');
     return;
   }
   if (!selectedTryOnOutfit) {
     alert('Please select an outfit to try on.');
+    return;
+  }
+  if (!selectedTryOnOutfit.imageUrl) {
+    alert('This outfit does not have an image for virtual try-on.');
     return;
   }
 
@@ -402,6 +447,44 @@ function generateTryOn() {
   resultImg.style.display = 'none';
   if (placeholder) placeholder.style.display = 'none';
   infoBox.style.display = 'none';
+
+  try {
+    const formData = new FormData();
+    formData.append('person', uploadedPersonFile);
+    formData.append('clothUrl', selectedTryOnOutfit.imageUrl);
+
+    const res = await fetch(`${API_BASE}/tryon`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.success === false) {
+      throw new Error(data.message || 'Try-on generation failed');
+    }
+
+    const generatedImage = getTryOnImageSource(data);
+    if (!generatedImage) {
+      throw new Error('The try-on service did not return an image.');
+    }
+
+    resultImg.src = generatedImage;
+    resultImg.style.display = 'block';
+    document.getElementById('tryon-outfit-name').textContent = selectedTryOnOutfit.name;
+    document.getElementById('tryon-outfit-price').textContent = '₹' + selectedTryOnOutfit.price.toLocaleString('en-IN');
+    document.getElementById('tryon-buy-link').href = selectedTryOnOutfit.buyLink;
+    infoBox.style.display = 'block';
+  } catch (err) {
+    console.error('Try-on failed:', err);
+    showTryOnFailure(err.message);
+  } finally {
+    loading.style.display = 'none';
+  }
+
+  return;
 
   // Simulate AI try-on (replace with real API call if available)
   setTimeout(() => {

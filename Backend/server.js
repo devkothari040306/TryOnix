@@ -26,6 +26,15 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
+async function imageUrlToBase64(imageUrl) {
+  const response = await axios.get(imageUrl, {
+    responseType: "arraybuffer",
+    timeout: 30000,
+  });
+
+  return Buffer.from(response.data).toString("base64");
+}
+
 // ─── MONGODB CONNECTION ────────────────────────
 mongoose
   .connect(process.env.MONGO_URI)
@@ -246,15 +255,33 @@ app.post(
   ]),
   async (req, res) => {
     try {
-      if (!req.files?.person || !req.files?.cloth) {
+      if (!process.env.HF_TOKEN) {
+        return res.status(500).json({
+          success: false,
+          message: "HF_TOKEN is not configured",
+        });
+      }
+
+      if (!req.files?.person) {
         return res.status(400).json({
           success: false,
-          message: "Person image and cloth image are required",
+          message: "Person image is required",
         });
       }
 
       const personImage = req.files.person[0].buffer.toString("base64");
-      const clothImage = req.files.cloth[0].buffer.toString("base64");
+      const clothImage = req.files?.cloth
+        ? req.files.cloth[0].buffer.toString("base64")
+        : req.body.clothUrl
+          ? await imageUrlToBase64(req.body.clothUrl)
+          : null;
+
+      if (!clothImage) {
+        return res.status(400).json({
+          success: false,
+          message: "Cloth image or clothUrl is required",
+        });
+      }
 
       const response = await axios.post(
         "https://api-inference.huggingface.co/models/yisol/IDM-VTON",
@@ -271,7 +298,10 @@ app.post(
         }
       );
 
-      res.json(response.data);
+      res.json({
+        success: true,
+        data: response.data,
+      });
     } catch (error) {
       console.error(
         "TryOn Error:",
