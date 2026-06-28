@@ -6,8 +6,15 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const app = express();
 
@@ -50,11 +57,29 @@ function authMiddleware(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!JWT_SECRET) {
+      return res.status(500).json({ message: "JWT_SECRET is not configured" });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+async function getAuthUser(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.authUser = user;
+    next();
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 }
 
@@ -68,6 +93,10 @@ app.get("/", (req, res) => {
 // REGISTER
 app.post("/api/auth/register", async (req, res) => {
   try {
+    if (!JWT_SECRET) {
+      return res.status(500).json({ message: "JWT_SECRET is not configured" });
+    }
+
     const { name, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
@@ -85,7 +114,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -107,6 +136,10 @@ app.post("/api/auth/register", async (req, res) => {
 // LOGIN
 app.post("/api/auth/login", async (req, res) => {
   try {
+    if (!JWT_SECRET) {
+      return res.status(500).json({ message: "JWT_SECRET is not configured" });
+    }
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -121,7 +154,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -138,6 +171,18 @@ app.post("/api/auth/login", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+// CURRENT USER
+app.get("/api/auth/me", authMiddleware, getAuthUser, (req, res) => {
+  res.json({
+    success: true,
+    user: {
+      id: req.authUser._id,
+      name: req.authUser.name,
+      email: req.authUser.email,
+    },
+  });
 });
 
 // ─── GET OUTFITS ───────────────────────────────
@@ -194,6 +239,7 @@ app.get("/api/outfits", async (req, res) => {
 // ─── TRY ON ROUTE ──────────────────────────────
 app.post(
   "/api/tryon",
+  authMiddleware,
   upload.fields([
     { name: "person", maxCount: 1 },
     { name: "cloth", maxCount: 1 },
