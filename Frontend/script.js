@@ -341,17 +341,53 @@ function launchTryOn() {
 function populateTryOnChips(outfits) {
   const container = document.getElementById('tryon-chips');
   if (!container) return;
-  container.innerHTML = outfits.map(o => `
+  const visibleOutfits = [...outfits];
+  if (selectedTryOnOutfit && !visibleOutfits.some(o => o._id === selectedTryOnOutfit._id)) {
+    visibleOutfits.unshift(selectedTryOnOutfit);
+  }
+
+  container.innerHTML = visibleOutfits.map(o => `
     <button class="tryon-outfit-chip" data-id="${o._id}" onclick="selectTryOnOutfit('${o._id}')">
       ${o.emoji || '👗'} ${o.name.split(' ').slice(0, 3).join(' ')}
     </button>
   `).join('');
+
+  updateSelectedTryOnOutfitUI();
 }
 
 function selectTryOnOutfit(id) {
   selectedTryOnOutfit = allOutfits.find(o => o._id === id) || null;
+  populateTryOnChips(allOutfits.slice(0, 12));
+}
+
+function updateSelectedTryOnOutfitUI() {
+  const selectedBox = document.getElementById('selected-tryon-outfit');
+  if (!selectedBox) return;
+
+  if (!selectedTryOnOutfit) {
+    selectedBox.style.display = 'none';
+    selectedBox.innerHTML = '';
+    return;
+  }
+
+  selectedBox.style.display = 'flex';
+  selectedBox.style.alignItems = 'center';
+  selectedBox.style.gap = '12px';
+  const selectedPrice = Number(selectedTryOnOutfit.price || 0).toLocaleString('en-IN');
+  selectedBox.innerHTML = `
+    ${selectedTryOnOutfit.imageUrl
+      ? `<img src="${selectedTryOnOutfit.imageUrl}" alt="${selectedTryOnOutfit.name}" style="width:54px;height:72px;object-fit:cover;border-radius:8px;" />`
+      : `<div style="width:54px;height:72px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:8px;">${selectedTryOnOutfit.emoji || '👗'}</div>`
+    }
+    <div style="min-width:0;">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;">Selected for try-on</div>
+      <div style="font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${selectedTryOnOutfit.name}</div>
+      <div style="font-size:13px;color:var(--accent);">₹${selectedPrice}</div>
+    </div>
+  `;
+
   document.querySelectorAll('.tryon-outfit-chip').forEach(c => {
-    c.classList.toggle('selected', c.dataset.id === id);
+    c.classList.toggle('selected', c.dataset.id === selectedTryOnOutfit._id);
   });
 }
 
