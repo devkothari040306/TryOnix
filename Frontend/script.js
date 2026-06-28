@@ -8,6 +8,147 @@ let allOutfits = [];
 let selectedOccasion = 'All';
 let selectedTryOnOutfit = null;
 let currentModalOutfit = null;
+let currentUser = JSON.parse(localStorage.getItem('tryonix_user') || 'null');
+
+// ─── AUTH ─────────────────────────────────────────────────────────────
+function getAuthToken() {
+  return localStorage.getItem('tryonix_token');
+}
+
+function setAuthMessage(message, isError = false) {
+  const el = document.getElementById('auth-msg');
+  if (!el) return;
+  el.textContent = message || '';
+  el.style.color = isError ? '#ff9a9a' : 'var(--muted)';
+}
+
+function toggleAuth(show) {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  modal.classList.toggle('open', show);
+  modal.style.display = show ? 'flex' : 'none';
+  if (show) setAuthMessage('');
+}
+
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('login-tab').classList.toggle('active', isLogin);
+  document.getElementById('signup-tab').classList.toggle('active', !isLogin);
+  setAuthMessage('');
+}
+
+async function authRequest(path, body) {
+  const res = await fetch(`${API_BASE}/auth/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || 'Authentication failed');
+  }
+
+  return data;
+}
+
+function saveSession(data) {
+  localStorage.setItem('tryonix_token', data.token);
+  localStorage.setItem('tryonix_user', JSON.stringify(data.user));
+  currentUser = data.user;
+  updateAuthUI();
+  toggleAuth(false);
+}
+
+async function signup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+
+  if (!name || !email || !password) {
+    setAuthMessage('Please fill all signup fields.', true);
+    return;
+  }
+
+  try {
+    setAuthMessage('Creating your account...');
+    const data = await authRequest('register', { name, email, password });
+    saveSession(data);
+  } catch (err) {
+    setAuthMessage(err.message, true);
+  }
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    setAuthMessage('Please enter email and password.', true);
+    return;
+  }
+
+  try {
+    setAuthMessage('Logging you in...');
+    const data = await authRequest('login', { email, password });
+    saveSession(data);
+  } catch (err) {
+    setAuthMessage(err.message, true);
+  }
+}
+
+function logout() {
+  localStorage.removeItem('tryonix_token');
+  localStorage.removeItem('tryonix_user');
+  currentUser = null;
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  const authBtn = document.getElementById('auth-btn');
+  if (!authBtn) return;
+
+  if (currentUser) {
+    authBtn.innerHTML = `
+      <a href="#" class="nav-cta" onclick="event.preventDefault(); logout();">
+        Logout (${currentUser.name})
+      </a>
+    `;
+  } else {
+    authBtn.innerHTML = `
+      <a href="#" class="nav-cta" onclick="event.preventDefault(); toggleAuth(true);">
+        Login / Signup
+      </a>
+    `;
+  }
+}
+
+async function verifySavedSession() {
+  const token = getAuthToken();
+  if (!token) {
+    updateAuthUI();
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) throw new Error('Session expired');
+    const data = await res.json();
+    currentUser = data.user;
+    localStorage.setItem('tryonix_user', JSON.stringify(data.user));
+  } catch (err) {
+    localStorage.removeItem('tryonix_token');
+    localStorage.removeItem('tryonix_user');
+    currentUser = null;
+  } finally {
+    updateAuthUI();
+  }
+}
 
 // ─── FETCH OUTFITS ────────────────────────────────────────────────────────────
 async function fetchOutfits(params = {}) {
@@ -236,6 +377,12 @@ function handlePhotoUpload(event) {
 }
 
 function generateTryOn() {
+  if (!getAuthToken()) {
+    setAuthMessage('Please login to use virtual try-on.', true);
+    toggleAuth(true);
+    return;
+  }
+
   const preview = document.getElementById('upload-preview');
   if (!preview.src || preview.style.display === 'none') {
     alert('Please upload your photo first.');
@@ -306,5 +453,6 @@ function showError() {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  verifySavedSession();
   fetchOutfits({});
 });
