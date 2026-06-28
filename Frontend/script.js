@@ -452,6 +452,7 @@ async function generateTryOn() {
     const formData = new FormData();
     formData.append('person', uploadedPersonFile);
     formData.append('clothUrl', selectedTryOnOutfit.imageUrl);
+    formData.append('garmentDescription', selectedTryOnOutfit.name || 'selected outfit');
 
     const res = await fetch(`${API_BASE}/tryon`, {
       method: 'POST',

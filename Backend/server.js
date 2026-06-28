@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Client, handle_file } from "@gradio/client";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +16,8 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const TRYON_SPACE_ID = process.env.HF_TRYON_SPACE_ID || "yisol/IDM-VTON";
+let tryOnClientPromise;
 
 const app = express();
 
@@ -26,13 +29,39 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-async function imageUrlToBase64(imageUrl) {
+async function imageUrlToBuffer(imageUrl) {
+  const url = new URL(imageUrl);
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new Error("Invalid cloth image URL");
+  }
+
   const response = await axios.get(imageUrl, {
     responseType: "arraybuffer",
     timeout: 30000,
   });
 
-  return Buffer.from(response.data).toString("base64");
+  return {
+    buffer: Buffer.from(response.data),
+    mimeType: response.headers["content-type"] || "image/png",
+  };
+}
+
+function getTryOnClient() {
+  if (!tryOnClientPromise) {
+    tryOnClientPromise = Client.connect(TRYON_SPACE_ID, {
+      token: process.env.HF_TOKEN,
+    });
+  }
+
+  return tryOnClientPromise;
+}
+
+function toHumanEditorInput(file) {
+  return {
+    background: handle_file(file.buffer),
+    layers: [],
+    composite: null,
+  };
 }
 
 // ─── MONGODB CONNECTION ────────────────────────
@@ -269,38 +298,34 @@ app.post(
         });
       }
 
-      const personImage = req.files.person[0].buffer.toString("base64");
-      const clothImage = req.files?.cloth
-        ? req.files.cloth[0].buffer.toString("base64")
+      const personFile = req.files.person[0];
+      const clothFile = req.files?.cloth
+        ? req.files.cloth[0]
         : req.body.clothUrl
-          ? await imageUrlToBase64(req.body.clothUrl)
+          ? await imageUrlToBuffer(req.body.clothUrl)
           : null;
 
-      if (!clothImage) {
+      if (!clothFile) {
         return res.status(400).json({
           success: false,
           message: "Cloth image or clothUrl is required",
         });
       }
 
-      const response = await axios.post(
-        "https://api-inference.huggingface.co/models/yisol/IDM-VTON",
-        {
-          person_image: personImage,
-          garment_image: clothImage,
-        },
-        {
-          headers: {
-            Authorization: "Bearer " + process.env.HF_TOKEN,
-            "Content-Type": "application/json",
-          },
-          timeout: 120000,
-        }
-      );
+      const client = await getTryOnClient();
+      const result = await client.predict("/tryon", {
+        dict: toHumanEditorInput(personFile),
+        garm_img: handle_file(clothFile.buffer),
+        garment_des: req.body.garmentDescription || "selected outfit",
+        is_checked: true,
+        is_checked_crop: false,
+        denoise_steps: Number(req.body.denoiseSteps || 30),
+        seed: Number(req.body.seed || 42),
+      });
 
       res.json({
         success: true,
-        data: response.data,
+        data: result.data,
       });
     } catch (error) {
       console.error(
@@ -310,7 +335,10 @@ app.post(
 
       res.status(500).json({
         success: false,
-        message: "Try-on generation failed",
+        message:
+          error.response?.data?.error ||
+          error.message ||
+          "Try-on generation failed",
       });
     }
   }
