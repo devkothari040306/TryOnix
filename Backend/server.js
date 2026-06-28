@@ -64,6 +64,20 @@ function toHumanEditorInput(file) {
   };
 }
 
+function getGradioFileUrl(fileData) {
+  if (!fileData) return "";
+  if (typeof fileData === "string") return fileData;
+  if (Array.isArray(fileData)) return getGradioFileUrl(fileData[0]);
+
+  return (
+    fileData.url ||
+    fileData.path ||
+    fileData.image?.url ||
+    fileData.image?.path ||
+    ""
+  );
+}
+
 // ─── MONGODB CONNECTION ────────────────────────
 mongoose
   .connect(process.env.MONGO_URI)
@@ -325,6 +339,8 @@ app.post(
 
       res.json({
         success: true,
+        resultImageUrl: getGradioFileUrl(result.data),
+        maskImageUrl: getGradioFileUrl(result.data?.[1]),
         data: result.data,
       });
     } catch (error) {

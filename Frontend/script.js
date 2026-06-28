@@ -379,6 +379,8 @@ function handlePhotoUpload(event) {
 }
 
 function getTryOnImageSource(payload) {
+  if (payload?.resultImageUrl) return payload.resultImageUrl;
+
   const data = payload?.data ?? payload;
 
   if (typeof data === 'string') {
@@ -390,15 +392,18 @@ function getTryOnImageSource(payload) {
   }
 
   const image =
+    data?.url ||
+    data?.path ||
     data?.image ||
     data?.generated_image ||
     data?.result ||
     data?.output ||
-    data?.data ||
-    data?.url ||
-    data?.[0]?.url;
+    data?.[0]?.url ||
+    data?.[0]?.path ||
+    data?.data;
 
   if (!image) return '';
+  if (typeof image !== 'string') return getTryOnImageSource(image);
 
   return typeof image === 'string' && !image.startsWith('http') && !image.startsWith('data:')
     ? `data:image/png;base64,${image}`
