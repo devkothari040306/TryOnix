@@ -48,9 +48,11 @@ async function imageUrlToBuffer(imageUrl) {
 
 function getTryOnClient() {
   if (!tryOnClientPromise) {
-    tryOnClientPromise = Client.connect(TRYON_SPACE_ID, {
-      token: process.env.HF_TOKEN,
-    });
+    const options = process.env.HF_TRYON_USE_TOKEN === "true" && process.env.HF_TOKEN
+      ? { token: process.env.HF_TOKEN }
+      : undefined;
+
+    tryOnClientPromise = Client.connect(TRYON_SPACE_ID, options);
   }
 
   return tryOnClientPromise;
@@ -76,6 +78,21 @@ function getGradioFileUrl(fileData) {
     fileData.image?.path ||
     ""
   );
+}
+
+async function gradioFileToDataUrl(fileData) {
+  const imageUrl = getGradioFileUrl(fileData);
+  if (!imageUrl) return "";
+  if (imageUrl.startsWith("data:")) return imageUrl;
+  if (!imageUrl.startsWith("http")) return "";
+
+  const response = await axios.get(imageUrl, {
+    responseType: "arraybuffer",
+    timeout: 30000,
+  });
+  const mimeType = response.headers["content-type"] || "image/png";
+
+  return `data:${mimeType};base64,${Buffer.from(response.data).toString("base64")}`;
 }
 
 // ─── MONGODB CONNECTION ────────────────────────
@@ -298,13 +315,6 @@ app.post(
   ]),
   async (req, res) => {
     try {
-      if (!process.env.HF_TOKEN) {
-        return res.status(500).json({
-          success: false,
-          message: "HF_TOKEN is not configured",
-        });
-      }
-
       if (!req.files?.person) {
         return res.status(400).json({
           success: false,
@@ -336,14 +346,19 @@ app.post(
         denoise_steps: Number(req.body.denoiseSteps || 30),
         seed: Number(req.body.seed || 42),
       });
+      const resultImageUrl = getGradioFileUrl(result.data);
+      const maskImageUrl = getGradioFileUrl(result.data?.[1]);
+      const resultImageDataUrl = await gradioFileToDataUrl(result.data);
 
       res.json({
         success: true,
-        resultImageUrl: getGradioFileUrl(result.data),
-        maskImageUrl: getGradioFileUrl(result.data?.[1]),
+        resultImageUrl,
+        resultImageDataUrl,
+        maskImageUrl,
         data: result.data,
       });
     } catch (error) {
+      tryOnClientPromise = null;
       console.error(
         "TryOn Error:",
         error.response?.data || error.message

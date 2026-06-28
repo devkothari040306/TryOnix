@@ -415,6 +415,7 @@ function handlePhotoUpload(event) {
 }
 
 function getTryOnImageSource(payload) {
+  if (payload?.resultImageDataUrl) return payload.resultImageDataUrl;
   if (payload?.resultImageUrl) return payload.resultImageUrl;
 
   const data = payload?.data ?? payload;
@@ -474,7 +475,13 @@ async function generateTryOn() {
     alert('Please select an outfit to try on.');
     return;
   }
-  if (!selectedTryOnOutfit.imageUrl) {
+  const garmentImageUrl =
+    selectedTryOnOutfit.tryOnImageUrl ||
+    selectedTryOnOutfit.garmentImageUrl ||
+    selectedTryOnOutfit.clothImageUrl ||
+    selectedTryOnOutfit.imageUrl;
+
+  if (!garmentImageUrl) {
     alert('This outfit does not have an image for virtual try-on.');
     return;
   }
@@ -492,7 +499,7 @@ async function generateTryOn() {
   try {
     const formData = new FormData();
     formData.append('person', uploadedPersonFile);
-    formData.append('clothUrl', selectedTryOnOutfit.imageUrl);
+    formData.append('clothUrl', garmentImageUrl);
     formData.append('garmentDescription', selectedTryOnOutfit.name || 'selected outfit');
 
     const res = await fetch(`${API_BASE}/tryon`, {
