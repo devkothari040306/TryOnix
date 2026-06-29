@@ -48,7 +48,8 @@ async function imageUrlToBuffer(imageUrl) {
 
 function getTryOnClient() {
   if (!tryOnClientPromise) {
-    const options = process.env.HF_TRYON_USE_TOKEN === "true" && process.env.HF_TOKEN
+    const shouldUseToken = process.env.HF_TRYON_USE_TOKEN !== "false";
+    const options = shouldUseToken && process.env.HF_TOKEN
       ? { token: process.env.HF_TOKEN }
       : undefined;
 
@@ -93,6 +94,56 @@ async function gradioFileToDataUrl(fileData) {
   const mimeType = response.headers["content-type"] || "image/png";
 
   return `data:${mimeType};base64,${Buffer.from(response.data).toString("base64")}`;
+}
+
+function getProviderErrorMessage(error) {
+  const data = error.response?.data;
+  if (typeof data === "string") return data;
+  if (data?.error) return data.error;
+  if (data?.message) return data.message;
+  return error.message || "";
+}
+
+function getTryOnErrorResponse(error) {
+  const providerMessage = getProviderErrorMessage(error);
+  const normalized = providerMessage.toLowerCase();
+
+  if (normalized.includes("exceeded") && normalized.includes("quota")) {
+    return {
+      status: 429,
+      body: {
+        success: false,
+        code: "TRYON_QUOTA_EXCEEDED",
+        message:
+          "The virtual try-on service is temporarily out of GPU quota. Please try again in a few minutes.",
+      },
+    };
+  }
+
+  if (
+    normalized.includes("token") ||
+    normalized.includes("unauthorized") ||
+    normalized.includes("authentication")
+  ) {
+    return {
+      status: 503,
+      body: {
+        success: false,
+        code: "TRYON_AUTH_REQUIRED",
+        message:
+          "The virtual try-on service needs a valid Hugging Face token on the server.",
+      },
+    };
+  }
+
+  return {
+    status: error.response?.status || 500,
+    body: {
+      success: false,
+      code: "TRYON_GENERATION_FAILED",
+      message: "Try-on generation failed. Please try again.",
+    },
+  };
 }
 
 // ─── MONGODB CONNECTION ────────────────────────
@@ -359,18 +410,13 @@ app.post(
       });
     } catch (error) {
       tryOnClientPromise = null;
+      const tryOnError = getTryOnErrorResponse(error);
       console.error(
         "TryOn Error:",
-        error.response?.data || error.message
+        getProviderErrorMessage(error) || error
       );
 
-      res.status(500).json({
-        success: false,
-        message:
-          error.response?.data?.error ||
-          error.message ||
-          "Try-on generation failed",
-      });
+      res.status(tryOnError.status).json(tryOnError.body);
     }
   }
 );

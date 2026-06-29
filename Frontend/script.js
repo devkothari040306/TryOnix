@@ -447,15 +447,37 @@ function getTryOnImageSource(payload) {
     : image;
 }
 
-function showTryOnFailure(message) {
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getTryOnFailureMessage(error) {
+  if (error?.code === 'TRYON_QUOTA_EXCEEDED') {
+    return 'The try-on service is temporarily busy. Please wait a few minutes and generate again.';
+  }
+
+  if (error?.code === 'TRYON_AUTH_REQUIRED') {
+    return 'The try-on service needs the server Hugging Face token to be configured.';
+  }
+
+  return error?.message || 'Try-on generation failed. Please try again.';
+}
+
+function showTryOnFailure(error) {
   const placeholder = document.querySelector('.tryon-placeholder');
   if (!placeholder) return;
 
   placeholder.style.display = 'block';
+  const message = getTryOnFailureMessage(error);
   placeholder.innerHTML = `
     <div style="font-size:48px;margin-bottom:12px;">!</div>
     <div style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text);">Try-on failed</div>
-    <div style="font-size:14px;">${message}</div>
+    <div style="font-size:14px;">${escapeHtml(message)}</div>
   `;
 }
 
@@ -512,7 +534,9 @@ async function generateTryOn() {
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data.success === false) {
-      throw new Error(data.message || 'Try-on generation failed');
+      const error = new Error(data.message || 'Try-on generation failed');
+      error.code = data.code;
+      throw error;
     }
 
     const generatedImage = getTryOnImageSource(data);
@@ -528,7 +552,7 @@ async function generateTryOn() {
     infoBox.style.display = 'block';
   } catch (err) {
     console.error('Try-on failed:', err);
-    showTryOnFailure(err.message);
+    showTryOnFailure(err);
   } finally {
     loading.style.display = 'none';
   }
