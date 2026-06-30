@@ -1,0 +1,580 @@
+/* TryOnix AI Fashion Assistant Stylesheet */
+
+:root {
+  --cb-primary: var(--accent, #c9a96e);
+  --cb-primary-light: var(--accent2, #e8c99a);
+  --cb-bg-dark: var(--bg, #0a0c0f);
+  --cb-surface: var(--surface, #540914);
+  --cb-surface-light: rgba(84, 9, 20, 0.85);
+  --cb-surface2: var(--surface2, #2b2b8e);
+  --cb-border: var(--border2, rgba(255, 255, 255, 0.12));
+  --cb-text: var(--text, #f0ede8);
+  --cb-muted: var(--muted, #8a8699);
+  --cb-font: 'DM Sans', sans-serif;
+  --cb-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --cb-accent-glow: var(--accent-glow, rgba(201, 169, 110, 0.15));
+}
+
+/* Floating Chat Trigger Button */
+.tryonix-chat-badge-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
+.tryonix-chat-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cb-primary) 0%, var(--cb-primary-light) 100%);
+  border: none;
+  box-shadow: 0 8px 30px rgba(201, 169, 110, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #0a0a0f;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+  position: relative;
+  outline: none;
+}
+
+.tryonix-chat-btn:hover {
+  transform: scale(1.08) rotate(5deg);
+  box-shadow: 0 12px 35px rgba(201, 169, 110, 0.6);
+}
+
+.tryonix-chat-btn:active {
+  transform: scale(0.95);
+}
+
+/* Pulse animation for the trigger button when unread notifications exist */
+.tryonix-chat-btn.pulse::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid var(--cb-primary);
+  animation: tryonix-pulse 2s infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes tryonix-pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Unread Badge */
+.tryonix-unread-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--pink, #d4749a);
+  color: #fff;
+  border: 2px solid var(--cb-bg-dark);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  animation: tryonix-bounce 1s infinite alternate;
+}
+
+@keyframes tryonix-bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-4px); }
+}
+
+/* Chat Window Wrapper */
+.tryonix-chat-window {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  width: 380px;
+  height: min(600px, calc(100vh - 140px));
+  background: var(--cb-surface-light);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--cb-border);
+  border-radius: 20px;
+  box-shadow: var(--cb-shadow);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  font-family: var(--cb-font);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), pointer-events 0.3s;
+}
+
+.tryonix-chat-window.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* Chat Header */
+.tryonix-chat-header {
+  padding: 16px 20px;
+  background: rgba(10, 12, 15, 0.6);
+  border-bottom: 1px solid var(--cb-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tryonix-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tryonix-header-avatar {
+  font-size: 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tryonix-status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--teal, #5cc8b0);
+  border: 1.5px solid var(--cb-bg-dark);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  box-shadow: 0 0 8px var(--teal);
+  animation: tryonix-blink 2s infinite;
+}
+
+@keyframes tryonix-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.tryonix-header-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.tryonix-header-name {
+  color: var(--cb-text);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.tryonix-header-status {
+  color: var(--cb-muted);
+  font-size: 11px;
+}
+
+.tryonix-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tryonix-header-btn {
+  background: transparent;
+  border: none;
+  color: var(--cb-muted);
+  font-size: 16px;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tryonix-header-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cb-text);
+}
+
+.tryonix-header-btn.close-btn:hover {
+  background: rgba(212, 116, 154, 0.2);
+  color: var(--pink, #d4749a);
+}
+
+/* Chat Messages Box */
+.tryonix-chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cb-primary) transparent;
+}
+
+.tryonix-chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tryonix-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tryonix-chat-messages::-webkit-scrollbar-thumb {
+  background-color: var(--cb-primary);
+  border-radius: 4px;
+}
+
+/* Message Item */
+.tryonix-msg-wrapper {
+  display: flex;
+  gap: 10px;
+  max-width: 85%;
+}
+
+.tryonix-msg-wrapper.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.tryonix-msg-wrapper.ai {
+  align-self: flex-start;
+}
+
+.tryonix-msg-avatar {
+  font-size: 20px;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--cb-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.tryonix-msg-wrapper.user .tryonix-msg-avatar {
+  background: var(--cb-accent-glow);
+  border-color: var(--cb-primary);
+}
+
+.tryonix-msg-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tryonix-msg-bubble {
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cb-text);
+  border-radius: 16px;
+  position: relative;
+  word-break: break-word;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.tryonix-msg-wrapper.user .tryonix-msg-bubble {
+  background: var(--cb-surface2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom-right-radius: 2px;
+}
+
+.tryonix-msg-wrapper.ai .tryonix-msg-bubble {
+  background: rgba(10, 12, 15, 0.7);
+  border: 1px solid var(--cb-border);
+  border-bottom-left-radius: 2px;
+}
+
+.tryonix-msg-timestamp {
+  font-size: 10px;
+  color: var(--cb-muted);
+  align-self: flex-end;
+}
+
+.tryonix-msg-wrapper.user .tryonix-msg-timestamp {
+  align-self: flex-end;
+}
+
+/* Suggested Questions Container */
+.tryonix-suggestions-container {
+  padding: 8px 12px;
+  background: rgba(10, 12, 15, 0.3);
+  border-top: 1px solid var(--cb-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tryonix-suggestions-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cb-muted);
+  font-weight: 700;
+  padding-left: 6px;
+}
+
+.tryonix-suggestions-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  scrollbar-width: none;
+}
+
+.tryonix-suggestions-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tryonix-chip {
+  padding: 6px 14px;
+  border-radius: 50px;
+  border: 1px solid var(--cb-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cb-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+}
+
+.tryonix-chip:hover {
+  border-color: var(--cb-primary);
+  color: var(--cb-primary-light);
+  background: var(--cb-accent-glow);
+}
+
+/* Chat Input Bar */
+.tryonix-chat-input-bar {
+  padding: 12px 16px;
+  background: rgba(10, 12, 15, 0.85);
+  border-top: 1px solid var(--cb-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tryonix-input-btn {
+  background: transparent;
+  border: none;
+  color: var(--cb-muted);
+  font-size: 18px;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tryonix-input-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cb-text);
+}
+
+.tryonix-input-field {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--cb-border);
+  border-radius: 20px;
+  padding: 10px 16px;
+  color: var(--cb-text);
+  font-size: 13.5px;
+  outline: none;
+  font-family: var(--cb-font);
+  transition: all 0.2s ease;
+}
+
+.tryonix-input-field:focus {
+  border-color: var(--cb-primary);
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 10px rgba(201, 169, 110, 0.1);
+}
+
+.tryonix-input-field::placeholder {
+  color: var(--cb-muted);
+}
+
+.tryonix-send-btn {
+  background: linear-gradient(135deg, var(--cb-primary) 0%, var(--cb-primary-light) 100%);
+  border: none;
+  color: #0a0a0f;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s;
+  box-shadow: 0 4px 12px rgba(201, 169, 110, 0.2);
+  outline: none;
+}
+
+.tryonix-send-btn:hover {
+  transform: scale(1.08);
+}
+
+.tryonix-send-btn:active {
+  transform: scale(0.92);
+}
+
+.tryonix-send-btn:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cb-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Typing Dots Animation */
+.tryonix-typing-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 20px;
+  padding: 0 4px;
+}
+
+.tryonix-typing-dots span {
+  width: 6px;
+  height: 6px;
+  background-color: var(--cb-primary);
+  border-radius: 50%;
+  animation: tryonix-bounce-dots 1.4s infinite ease-in-out both;
+}
+
+.tryonix-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.tryonix-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes tryonix-bounce-dots {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Copy Action Button inside AI Bubble */
+.tryonix-copy-btn {
+  position: absolute;
+  right: 6px;
+  bottom: -22px;
+  background: transparent;
+  border: none;
+  color: var(--cb-muted);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s;
+  pointer-events: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tryonix-msg-bubble:hover .tryonix-copy-btn {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.tryonix-copy-btn:hover {
+  color: var(--cb-primary-light);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Copy success toast */
+.tryonix-toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(10, 12, 15, 0.95);
+  border: 1px solid var(--cb-primary);
+  color: var(--cb-primary-light);
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 1010;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.tryonix-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Markdown and Styling inside chat bubble */
+.tryonix-msg-bubble p {
+  margin-bottom: 8px;
+}
+.tryonix-msg-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.tryonix-msg-bubble ul, .tryonix-msg-bubble ol {
+  margin: 6px 0 10px 18px;
+  padding-left: 0;
+}
+
+.tryonix-msg-bubble li {
+  margin-bottom: 4px;
+}
+
+.tryonix-msg-bubble strong {
+  color: var(--cb-primary-light);
+  font-weight: 700;
+}
+
+.tryonix-msg-bubble code {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 90%;
+}
+
+.tryonix-msg-bubble blockquote {
+  border-left: 2px solid var(--cb-primary);
+  margin: 8px 0;
+  padding-left: 8px;
+  color: var(--cb-muted);
+}
+
+/* Responsive Overrides */
+@media (max-width: 480px) {
+  .tryonix-chat-window {
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+  }
+  .tryonix-chat-badge-container {
+    bottom: 16px;
+    right: 16px;
+  }
+}
